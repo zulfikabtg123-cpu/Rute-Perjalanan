@@ -1,0 +1,517 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Program Menentukan Rute Perjalanan</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eaf3f8;
+            margin: 0;
+            padding: 25px 14px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #176b87;
+        }
+
+        .deskripsi {
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        label {
+            display: block;
+            margin-top: 18px;
+            font-weight: bold;
+        }
+
+        select {
+            width: 100%;
+            padding: 13px;
+            margin-top: 8px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 22px;
+            background-color: #176b87;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #124d63;
+        }
+
+        /* Hasil dan tabel disembunyikan terlebih dahulu */
+        #hasil,
+        #dataRute {
+            display: none;
+        }
+
+        #hasil {
+            margin-top: 22px;
+            padding: 17px;
+            background-color: #e5f5ed;
+            border-radius: 9px;
+        }
+
+        #hasil.error {
+            background-color: #fff1ee;
+        }
+
+        #dataRute {
+            margin-top: 25px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 500px;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #176b87;
+            color: white;
+        }
+
+        .catatan {
+            font-size: 12px;
+            color: #657985;
+            line-height: 1.5;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Program Menentukan Rute Perjalanan</h1>
+
+    <p class="deskripsi">
+        Program untuk menentukan rute perjalanan
+        dan jarak antar kota di Sulawesi Selatan.
+    </p>
+
+    <label for="asal">Kota Asal:</label>
+
+    <select id="asal">
+        <option value="">-- Pilih Kota Asal --</option>
+    </select>
+
+    <label for="tujuan">Kota Tujuan:</label>
+
+    <select id="tujuan">
+        <option value="">-- Pilih Kota Tujuan --</option>
+    </select>
+
+    <button onclick="cariRute()">
+        Cari Rute Perjalanan
+    </button>
+
+    <!-- Hasil pencarian -->
+    <div id="hasil">
+        <h3 id="judulHasil">Hasil Pencarian</h3>
+        <p id="jalur"></p>
+        <p id="jarak"></p>
+    </div>
+
+    <!-- Tabel disembunyikan sebelum tombol diklik -->
+    <div id="dataRute">
+
+        <h3>Data Rute dan Jarak Antar Kota</h3>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kota Asal</th>
+                        <th>Kota Tujuan</th>
+                        <th>Jalur</th>
+                        <th>Jarak</th>
+                    </tr>
+                </thead>
+
+                <tbody id="isiTabel"></tbody>
+            </table>
+        </div>
+
+        <p class="catatan">
+            Catatan: Jarak tambahan merupakan data simulasi
+            untuk pembelajaran.
+        </p>
+    </div>
+
+    <footer>
+        Dibuat oleh: <b>Sulpikawati</b>
+    </footer>
+
+</div>
+
+<script>
+
+// Daftar 12 kota di Sulawesi Selatan
+const kota = [
+    "Makassar",
+    "Maros",
+    "Gowa",
+    "Takalar",
+    "Jeneponto",
+    "Bantaeng",
+    "Bulukumba",
+    "Sinjai",
+    "Bone",
+    "Soppeng",
+    "Barru",
+    "Parepare"
+];
+
+// Data rute dan jarak antar kota
+const rute = [
+    {
+        asal: "Bantaeng",
+        tujuan: "Makassar",
+        jarak: 125,
+        melalui: ["Bulukumba"]
+    },
+    {
+        asal: "Bantaeng",
+        tujuan: "Bulukumba",
+        jarak: 60
+    },
+    {
+        asal: "Makassar",
+        tujuan: "Parepare",
+        jarak: 155,
+        melalui: ["Barru"]
+    },
+    {
+        asal: "Makassar",
+        tujuan: "Maros",
+        jarak: 30
+    },
+    {
+        asal: "Makassar",
+        tujuan: "Gowa",
+        jarak: 15
+    },
+    {
+        asal: "Gowa",
+        tujuan: "Takalar",
+        jarak: 40
+    },
+    {
+        asal: "Takalar",
+        tujuan: "Jeneponto",
+        jarak: 65
+    },
+    {
+        asal: "Jeneponto",
+        tujuan: "Bantaeng",
+        jarak: 45
+    },
+    {
+        asal: "Bulukumba",
+        tujuan: "Sinjai",
+        jarak: 70
+    },
+    {
+        asal: "Sinjai",
+        tujuan: "Bone",
+        jarak: 110
+    },
+    {
+        asal: "Bone",
+        tujuan: "Soppeng",
+        jarak: 70
+    },
+    {
+        asal: "Soppeng",
+        tujuan: "Barru",
+        jarak: 90
+    },
+    {
+        asal: "Maros",
+        tujuan: "Barru",
+        jarak: 90
+    },
+    {
+        asal: "Barru",
+        tujuan: "Parepare",
+        jarak: 53
+    }
+];
+
+// Memasukkan kota ke pilihan asal dan tujuan
+const pilihanAsal = document.getElementById("asal");
+const pilihanTujuan = document.getElementById("tujuan");
+
+kota.forEach(function(nama) {
+    pilihanAsal.add(new Option(nama, nama));
+    pilihanTujuan.add(new Option(nama, nama));
+});
+
+// Menampilkan tabel data rute
+function tampilkanTabel() {
+    const isiTabel = document.getElementById("isiTabel");
+
+    isiTabel.innerHTML = "";
+
+    rute.forEach(function(data) {
+        const baris = document.createElement("tr");
+
+        const jalur = [
+            data.asal,
+            ...(data.melalui || []),
+            data.tujuan
+        ].join(" -> ");
+
+        const kolomData = [
+            data.asal,
+            data.tujuan,
+            jalur,
+            data.jarak + " km"
+        ];
+
+        kolomData.forEach(function(teks) {
+            const kolom = document.createElement("td");
+            kolom.textContent = teks;
+            baris.appendChild(kolom);
+        });
+
+        isiTabel.appendChild(baris);
+    });
+}
+
+// Algoritma Dijkstra untuk mencari rute terpendek
+function cariJalurTerpendek(asal, tujuan) {
+
+    const graf = {};
+
+    kota.forEach(function(nama) {
+        graf[nama] = [];
+    });
+
+    rute.forEach(function(data) {
+
+        const jalurMaju = [
+            data.asal,
+            ...(data.melalui || []),
+            data.tujuan
+        ];
+
+        graf[data.asal].push({
+            tujuan: data.tujuan,
+            jarak: data.jarak,
+            jalur: jalurMaju
+        });
+
+        graf[data.tujuan].push({
+            tujuan: data.asal,
+            jarak: data.jarak,
+            jalur: [...jalurMaju].reverse()
+        });
+    });
+
+    const jarak = {};
+    const sebelumnya = {};
+    const belumDikunjungi = new Set(kota);
+
+    kota.forEach(function(nama) {
+        jarak[nama] = Infinity;
+    });
+
+    jarak[asal] = 0;
+
+    while (belumDikunjungi.size > 0) {
+
+        let sekarang = null;
+
+        belumDikunjungi.forEach(function(nama) {
+            if (
+                sekarang === null ||
+                jarak[nama] < jarak[sekarang]
+            ) {
+                sekarang = nama;
+            }
+        });
+
+        if (
+            sekarang === null ||
+            jarak[sekarang] === Infinity
+        ) {
+            break;
+        }
+
+        if (sekarang === tujuan) {
+            break;
+        }
+
+        belumDikunjungi.delete(sekarang);
+
+        graf[sekarang].forEach(function(tetangga) {
+
+            if (!belumDikunjungi.has(tetangga.tujuan)) {
+                return;
+            }
+
+            const jarakBaru =
+                jarak[sekarang] + tetangga.jarak;
+
+            if (jarakBaru < jarak[tetangga.tujuan]) {
+
+                jarak[tetangga.tujuan] = jarakBaru;
+
+                sebelumnya[tetangga.tujuan] = {
+                    dari: sekarang,
+                    jalur: tetangga.jalur
+                };
+            }
+        });
+    }
+
+    if (jarak[tujuan] === Infinity) {
+        return null;
+    }
+
+    const hasilJalur = [];
+    let saatIni = tujuan;
+
+    while (saatIni !== asal) {
+
+        const dataSebelumnya = sebelumnya[saatIni];
+
+        if (!dataSebelumnya) {
+            return null;
+        }
+
+        hasilJalur.unshift(
+            ...dataSebelumnya.jalur.slice(1)
+        );
+
+        saatIni = dataSebelumnya.dari;
+    }
+
+    return {
+        jalur: [asal, ...hasilJalur].join(" -> "),
+        jarak: jarak[tujuan]
+    };
+}
+
+// Fungsi tombol Cari Rute Perjalanan
+function cariRute() {
+
+    const asal = pilihanAsal.value;
+    const tujuan = pilihanTujuan.value;
+
+    const hasil = document.getElementById("hasil");
+    const tabel = document.getElementById("dataRute");
+
+    const judul = document.getElementById("judulHasil");
+    const jalur = document.getElementById("jalur");
+    const jarak = document.getElementById("jarak");
+
+    // Tampilkan hasil dan tabel setelah tombol diklik
+    hasil.style.display = "block";
+    tabel.style.display = "block";
+
+    hasil.classList.remove("error");
+
+    tampilkanTabel();
+
+    if (asal === "" || tujuan === "") {
+
+        hasil.classList.add("error");
+
+        judul.textContent = "Pilihan belum lengkap";
+
+        jalur.textContent =
+            "Silakan pilih kota asal dan kota tujuan terlebih dahulu.";
+
+        jarak.textContent = "";
+
+        return;
+    }
+
+    if (asal === tujuan) {
+
+        hasil.classList.add("error");
+
+        judul.textContent = "Pilihan kota tidak sesuai";
+
+        jalur.textContent =
+            "Kota asal dan kota tujuan tidak boleh sama.";
+
+        jarak.textContent = "";
+
+        return;
+    }
+
+    const hasilRute = cariJalurTerpendek(asal, tujuan);
+
+    if (hasilRute !== null) {
+
+        judul.textContent = "Rute Perjalanan Ditemukan";
+
+        jalur.textContent =
+            "Rute perjalanan: " + hasilRute.jalur;
+
+        jarak.textContent =
+            "Jarak terpendek: " + hasilRute.jarak + " km";
+
+    } else {
+
+        hasil.classList.add("error");
+
+        judul.textContent = "Rute Tidak Ditemukan";
+
+        jalur.textContent =
+            "Maaf, rute perjalanan belum tersedia.";
+
+        jarak.textContent = "";
+    }
+}
+
+</script>
+
+</body>
+</html>
